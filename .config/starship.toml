@@ -1,0 +1,126 @@
+add_newline = false
+
+format = """
+[ ](bg:#222222)\
+($kubernetes[  ](fg:#666666 bg:#222222))\
+($python[  ](fg:#666666 bg:#222222))\
+($directory[  ](fg:#666666 bg:#222222))\
+($git_branch$git_commit[ ](fg:#666666 bg:#222222)($git_state[ ](fg:#666666 bg:#222222))$git_status[  ](fg:#666666 bg:#222222))\
+($nix_shell[  ](fg:#666666 bg:#222222))\
+($cmd_duration[  ](fg:#666666 bg:#222222))\
+($jobs[  ](fg:#666666 bg:#222222))\
+($time[  ](fg:#666666 bg:#222222))\
+$status${custom.status_code}[](fg:#222222)\
+"""
+
+right_format = """"""
+
+[kubernetes]
+style = "fg:#416bde bg:#222222"
+
+[python]
+style = "fg:#4672A1 bg:#222222"
+format = '[$virtualenv]($style)'
+detect_extensions = []
+detect_files = []
+detect_folders = []
+
+[directory]
+use_os_path_sep = false
+fish_style_pwd_dir_length = 1
+truncate_to_repo = false
+style = "fg:#00A213 bg:#222222"
+format = '[$path$read_only]($style)'
+disabled = false
+
+[git_branch]
+symbol = ""
+style = "fg:#de5d3f bg:#222222"
+format = '[$symbol$branch]($style)'
+disabled = false
+
+[git_commit]
+format = '[\($hash$tag\)]($style)'
+tag_symbol = "🏷"
+style = "fg:#de5d3f bg:#222222"
+disabled = false
+
+[git_state]
+rebase = 'rebase'
+merge = 'merge'
+revert = 'revert'
+cherry_pick = 'pick'
+bisect = 'bisect'
+style = "fg:cyan bg:#222222"
+format = "[󱇯 $state($progress_current/$progress_total)]($style)"
+disabled = false
+
+[git_status]
+conflicted = "~$count"
+ahead      = "⇡$count"
+behind     = "⇣$count"
+diverged   = "⇕⇡$ahead_count⇣$behind_count"
+up_to_date = "✓"
+untracked  = "?$count"
+stashed    = "\\$$count"
+modified   = "!$count"
+staged     = "+$count"
+renamed    = "»$count"
+deleted    = "✘$count"
+style = "fg:cyan bg:#222222"
+format = "[$all_status$ahead_behind]($style)"
+disabled = false
+
+[nix_shell]
+style = "fg:#7295CC bg:#222222"
+format = '[$state$name]($style)'
+impure_msg = '󰼩 '
+pure_msg = ' '
+disabled = false
+
+[cmd_duration]
+min_time = 0
+show_milliseconds = true
+style = "fg:#EFBF04 bg:#222222"
+format = '[$duration]($style)'
+disabled = false
+
+[jobs]
+symbol = '+'
+style = "fg:purple bg:#222222"
+format = '[$symbol$number]($style)'
+disabled = false
+
+[status]
+format = "[$symbol]($style)"
+pipestatus = true
+pipestatus_format = "[$pipestatus](bg:#222222)"
+pipestatus_separator = "[|](bg:#222222)"
+pipestatus_segment_format = "[$symbol]($style)"
+success_symbol = ""
+map_symbol = true
+recognize_signal_code = true
+success_style = "fg:bright-green bg:#222222"
+failure_style = "fg:bright-red bg:#222222"
+disabled = false
+
+[custom.status_code]
+when = 'test "$STARSHIP_LAST_STATUS" != "0"'
+command = 'echo "$STARSHIP_LAST_STATUS"'
+style = "fg:bright-red bg:#222222"
+format = "[$output]($style)"
+shell = ["sh"]
+
+[time]
+style = "fg:white bg:#222222"
+format = "[$time]($style)"
+time_format = "%D %T"
+disabled = false
+
+[character]
+success_symbol = "[\\[I\\]>](bold green)"
+error_symbol = "[\\[I>](bold green)"
+vimcmd_symbol = "[\\[N\\]>](bold red)"
+vimcmd_replace_one_symbol = "[\\[R\\]>](bold green)"
+vimcmd_replace_symbol = "[\\[R\\]>](bold cyan)"
+vimcmd_visual_symbol = "[\\[V\\]>](bold purple)"

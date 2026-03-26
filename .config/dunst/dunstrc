@@ -1,0 +1,41 @@
+[global]
+    # Font
+    font = JetBrains Mono 9
+
+    # Rounded corners
+    corner_radius = 10
+    
+    # Fade animations
+    fade = yes
+    fade_in = 0.5
+    fade_out = 2
+
+    # Display
+    frame_width = 2
+    separator_height = 2
+    padding = 8
+    horizontal_padding = 8
+    
+    # Colors
+    background = "#1a1b26"
+    foreground = "#c0caf5"
+    frame_color = "#7aa2f7"
+    separator_color = "#7aa2f7"
+
+[urgency_low]
+    background = "#1a1b26"
+    foreground = "#c0caf5"
+    frame_color = "#7aa2f7"
+    timeout = 10
+
+[urgency_normal]
+    background = "#1a1b26"
+    foreground = "#c0caf5"
+    frame_color = "#7aa2f7"
+    timeout = 10
+
+[urgency_critical]
+    background = "#1a1b26"
+    foreground = "#f7768e"
+    frame_color = "#f7768e"
+    timeout = 0

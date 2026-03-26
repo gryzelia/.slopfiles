@@ -1,0 +1,3 @@
+[submodule "scripts"]
+	path = scripts
+	url = git@github-gryzelia:gryzelia/dotfiles-mgmt.git

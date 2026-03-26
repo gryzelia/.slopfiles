@@ -1,0 +1,37 @@
+[core]
+	editor = nvim
+	untrackedcache = true
+
+[alias]
+	a = add
+	aa = add --all
+	c = commit
+	cm = commit -m
+	cam = commit --all -m
+	cmd = commit --amend
+	st = status
+	stu = status -uno
+	co = checkout
+	cob = checkout -b
+	br = branch
+	l = log --oneline --decorate --color
+	ll = log --pretty=format:"%C(yellow)%h\\ %ad%Cred%d\\ %Creset%s%Cblue\\ [%an]" --decorate --date=short
+	llg = log --pretty=format:"%C(yellow)%h\\ %ad%Cred%d\\ %Creset%s%Cblue\\ [%an]" --decorate --date=short --graph
+	lfr = log --pretty=fuller
+	d = diff
+	dh = diff HEAD
+	ds = diff --stat
+	dc = diff --cached
+	cfg = config
+	la = config --get-regexp ^alias
+	sub = submodule
+
+[include]
+	path = identity
+
+[init]
+	defaultBranch = main
+[merge]
+	tool = nvimdiff
+[push]
+	autoSetupRemote = true

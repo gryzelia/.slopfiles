@@ -1,0 +1,13 @@
+window-decoration = server
+
+# Font
+# test with
+# echo (set_color normal)"The quick brown fox"(set_color normal)\n(set_color --bold)"The quick brown fox"(set_color normal)\n(set_color --italics)"The quick brown fox"(set_color normal)\n(set_color --bold --italics)"The quick brown fox"(set_color normal)
+font-size = 9
+
+font-family = "JetBrains Mono SemiBold"
+font-family-italic = "JetBrains Mono SemiBold"
+font-family-bold = "JetBrains Mono ExtraBold"
+font-family-bold-italic = "JetBrains Mono ExtraBold"
+
+command = fish

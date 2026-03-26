@@ -1,0 +1,21 @@
+# Re-include stow's built-in defaults (this file replaces them entirely)
+RCS
+.+,v
+CVS
+\.\#.+
+\.cvsignore
+\.svn
+_darcs
+\.hg
+\.git
+\.gitignore
+\.gitmodules
+.+~
+\#.*\#
+^/README.*
+^/LICENSE.*
+^/COPYING
+
+# Repo management — do not stow into $HOME
+^/scripts
+^/\.claude
