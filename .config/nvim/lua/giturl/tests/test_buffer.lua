@@ -37,6 +37,12 @@ eq('fugitive sha git_root', parsed and parsed.git_root, '/project')
 eq('fugitive sha ref', parsed and parsed.ref, 'a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2')
 eq('fugitive sha filepath', parsed and parsed.filepath, 'lib/utils.lua')
 
+-- Fugitive with worktree path (no .git in URL)
+parsed = buffer.parse('fugitive:///home/user/myrepo/worktrees/dev//abc123def456/src/deep/file.lua')
+eq('fugitive worktree git_root', parsed and parsed.git_root, '/home/user/myrepo/worktrees/dev')
+eq('fugitive worktree ref', parsed and parsed.ref, 'abc123def456')
+eq('fugitive worktree filepath', parsed and parsed.filepath, 'src/deep/file.lua')
+
 -- Fugitive with no slash in rest (no parseable ref/filepath split)
 local result, err = buffer.parse('fugitive:///repo/.git//file.lua')
 eq('fugitive no slash returns nil', result, nil)

@@ -12,9 +12,10 @@ function M.parse(bufname)
   end
 
   -- Fugitive: fugitive:///path/to/repo/.git//ref/filepath
-  local repo_path, rest = bufname:match('^fugitive://(.+)%.git//(.+)$')
-  if repo_path and rest then
-    local git_root = repo_path:gsub('/$', '') -- strip trailing slash
+  --       or: fugitive:///path/to/worktree//ref/filepath
+  local git_path, rest = bufname:match('^fugitive://(.+)//(.+)$')
+  if git_path and rest then
+    local git_root = git_path:gsub('/$', ''):gsub('/%.git$', '')
     -- Split rest at first / into ref and filepath
     local ref, filepath = rest:match('^([^/]+)/(.+)$')
     if ref and filepath then
