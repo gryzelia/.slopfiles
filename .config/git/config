@@ -2,6 +2,9 @@
 	editor = nvim
 	untrackedcache = true
 
+[core]
+	manyFiles = true
+
 [alias]
 	a = add
 	aa = add --all
@@ -25,9 +28,6 @@
 	cfg = config
 	la = config --get-regexp ^alias
 	sub = submodule
-
-[include]
-	path = identity
 
 [init]
 	defaultBranch = main
