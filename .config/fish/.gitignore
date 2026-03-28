@@ -1,2 +1,3 @@
 conf.d/nix.fish
 conf.d/rustup.fish
+fish_variables
