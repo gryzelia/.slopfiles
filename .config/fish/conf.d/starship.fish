@@ -32,6 +32,12 @@ function __starship_async_handler --on-signal SIGUSR1
 end
 
 function fish_prompt
+    # Set status/pipestatus first before other commands overwrite it
+    set -g __starship_saved_pipestatus "$pipestatus"
+    set -g __starship_saved_status $status
+    set -g __starship_saved_duration "$CMD_DURATION$cmd_duration"
+    __starship_set_job_count
+    set -g __starship_saved_jobs $STARSHIP_JOBS
     # Keymap — always update (for mode changes)
     switch "$fish_key_bindings"
         case fish_hybrid_key_bindings fish_vi_key_bindings fish_helix_key_bindings
@@ -43,15 +49,7 @@ function fish_prompt
     # Capture status only after a real command (not on mode change/repaint)
     if set -q __starship_new_command
         set -e __starship_new_command
-        set STARSHIP_CMD_PIPESTATUS $pipestatus
-        set STARSHIP_CMD_STATUS $status
-        set STARSHIP_DURATION "$CMD_DURATION$cmd_duration"
-        __starship_set_job_count
         # Save for repaints and async jobs
-        set -g __starship_saved_pipestatus "$STARSHIP_CMD_PIPESTATUS"
-        set -g __starship_saved_status $STARSHIP_CMD_STATUS
-        set -g __starship_saved_duration $STARSHIP_DURATION
-        set -g __starship_saved_jobs $STARSHIP_JOBS
         set -g __starship_new_cmd_render 1
     end
 
