@@ -171,7 +171,7 @@ bindsym $mod+Shift+e exec "i3-nagbar -t warning -m 'You pressed the exit shortcu
 exec --no-startup-id "flameshot"
 bindsym $mod+Shift+s exec "flameshot gui"
 
-exec --no-startup-id "fcitx5"
+exec --no-startup-id fcitx5 -d
 
 # resize window (you can also use the mouse for that)
 mode "resize" {
