@@ -1,6 +1,15 @@
 local fzf = require('fzf-lua')
 local utils = require('utils')
 
+local function git_exec(cmd)
+  local output = vim.fn.system(cmd)
+  if vim.v.shell_error ~= 0 then
+    vim.notify(vim.trim(output), vim.log.levels.ERROR)
+    return false
+  end
+  return true
+end
+
 fzf.setup({
   keymap = {
     builtin = {
@@ -171,7 +180,7 @@ local function fzf_diff_exec(opts, actions)
     ['ctrl-a'] = {
       fn = function(selected)
         for _, file in ipairs(selected) do
-          vim.fn.system('git -C ' .. vim.fn.shellescape(git_root)
+          git_exec('git -C ' .. vim.fn.shellescape(git_root)
             .. ' diff ' .. diff_args .. ' -- ' .. vim.fn.shellescape(file)
             .. ' | git -C ' .. vim.fn.shellescape(git_root) .. ' apply')
         end
@@ -181,7 +190,7 @@ local function fzf_diff_exec(opts, actions)
     ['ctrl-r'] = {
       fn = function(selected)
         for _, file in ipairs(selected) do
-          vim.fn.system('git -C ' .. vim.fn.shellescape(git_root)
+          git_exec('git -C ' .. vim.fn.shellescape(git_root)
             .. ' diff ' .. diff_args .. ' -- ' .. vim.fn.shellescape(file)
             .. ' | git -C ' .. vim.fn.shellescape(git_root) .. ' apply --reverse')
         end
@@ -217,7 +226,7 @@ local function fzf_git_diff_commit(commit)
     ['ctrl-o'] = {
       fn = function(selected)
         for _, file in ipairs(selected) do
-          vim.fn.system('git -C ' .. vim.fn.shellescape(git_root)
+          git_exec('git -C ' .. vim.fn.shellescape(git_root)
             .. ' checkout ' .. commit .. ' -- ' .. vim.fn.shellescape(file))
         end
         fzf_git_diff_commit(commit)
@@ -262,11 +271,12 @@ end
 -- Order two commits so oldest (ancestor) comes first.
 -- Returns oldest, newest or nil if neither is an ancestor of the other.
 local function order_commits(a, b)
-  if vim.fn.system('git merge-base --is-ancestor ' .. a .. ' ' .. b):match('') ~= nil
-    and vim.v.shell_error == 0 then
+  vim.fn.system('git merge-base --is-ancestor ' .. a .. ' ' .. b)
+  if vim.v.shell_error == 0 then
     return a, b
-  elseif vim.fn.system('git merge-base --is-ancestor ' .. b .. ' ' .. a):match('') ~= nil
-    and vim.v.shell_error == 0 then
+  end
+  vim.fn.system('git merge-base --is-ancestor ' .. b .. ' ' .. a)
+  if vim.v.shell_error == 0 then
     return b, a
   end
   return nil, nil
@@ -319,6 +329,17 @@ local function fzf_git_log(args, warning)
         end,
         header = 'view in fugitive',
       },
+      ['ctrl-p'] = {
+        fn = function(selected)
+          for _, entry in ipairs(selected) do
+            local commit = entry:match('[a-f0-9]+')
+            if commit then
+              if not git_exec('git cherry-pick ' .. commit) then break end
+            end
+          end
+        end,
+        header = 'cherry-pick',
+      },
     },
   })
 end
@@ -326,6 +347,16 @@ end
 vim.keymap.set('n', '<leader>gl', function()
   prompt_git_in_terminal('log', fzf_git_log)
 end, { desc = '[G]it [L]og' })
+
+vim.keymap.set('n', '<leader>gL', function()
+  local git_root = utils.find_git_root()
+  if not git_root then return end
+  local file = vim.fn.expand('%:p')
+  local rel = utils.relative_to(git_root, file)
+  if rel then
+    fzf_git_log('-- ' .. rel)
+  end
+end, { desc = '[G]it buffer [L]og' })
 
 vim.keymap.set('n', '<leader>gd', function()
   prompt_git_in_terminal('diff', function(args)
