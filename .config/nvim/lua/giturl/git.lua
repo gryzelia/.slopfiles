@@ -30,29 +30,53 @@ function M.relative_path(root, abs_path)
   return nil
 end
 
---- Parse a git remote URL into { host, owner, repo }.
----@param git_root string
----@param remote_name string
----@return table|nil parsed { host, owner, repo }
----@return string|nil err
-function M.parse_remote_url(git_root, remote_name)
-  local url = vim.fn.systemlist('git -C ' .. vim.fn.shellescape(git_root) .. ' remote get-url ' .. vim.fn.shellescape(remote_name))[1]
-  if vim.v.shell_error ~= 0 or not url then
-    return nil, 'Failed to get remote URL for ' .. remote_name
+--- Extract the hostname from ssh -G output lines.
+---@param lines string[]
+---@param fallback string
+---@return string hostname
+function M._parse_ssh_hostname(lines, fallback)
+  for _, line in ipairs(lines) do
+    local hostname = line:match('^hostname%s+(.+)$')
+    if hostname then
+      return hostname
+    end
   end
-  return M._parse_url(url)
+  return fallback
 end
 
---- Parse a raw remote URL string (testable without git).
+--- Resolve an SSH destination to its real hostname via ssh -G.
+--- Accepts any SSH destination format: host, user@host, ssh://[user@]host.
+---@param dest string
+---@return string hostname
+function M._resolve_ssh_host(dest)
+  local lines = vim.fn.systemlist('ssh -G ' .. vim.fn.shellescape(dest))
+  if vim.v.shell_error ~= 0 then
+    -- Fallback: strip ssh:// and user@ prefixes
+    local h = dest:gsub('^ssh://', '')
+    return h:match('@(.+)$') or h
+  end
+  return M._parse_ssh_hostname(lines, dest)
+end
+
+--- Parse a remote URL string into { host, owner, repo }.
+--- SSH destinations are resolved to hostnames via ssh -G.
 ---@param url string
 ---@return table|nil parsed { host, owner, repo }
 ---@return string|nil err
 function M._parse_url(url)
-  -- SSH: git@host:owner/repo.git
-  local host, path = url:match('^git@([^:]+):(.+)$')
+  local host, path
+  -- HTTPS: https://host/owner/repo.git
+  host, path = url:match('^https?://([^/]+)/(.+)$')
   if not host then
-    -- HTTPS: https://host/owner/repo.git
-    host, path = url:match('^https?://([^/]+)/(.+)$')
+    -- SSH: ssh://[user@]host[:port]/path or [user@]host:path or alias:path
+    local dest
+    dest, path = url:match('^(ssh://[^/]+)/(.+)$')
+    if not dest then
+      dest, path = url:match('^(.-):(.+)$')
+    end
+    if dest then
+      host = M._resolve_ssh_host(dest)
+    end
   end
   if not host or not path then
     return nil, 'Unsupported remote URL format: ' .. url
@@ -67,6 +91,19 @@ function M._parse_url(url)
   local owner = path:sub(1, last_slash - 1)
   local repo = path:sub(last_slash + 1)
   return { host = host, owner = owner, repo = repo }
+end
+
+--- Parse a git remote URL into { host, owner, repo }.
+---@param git_root string
+---@param remote_name string
+---@return table|nil parsed { host, owner, repo }
+---@return string|nil err
+function M.parse_remote_url(git_root, remote_name)
+  local url = vim.fn.systemlist('git -C ' .. vim.fn.shellescape(git_root) .. ' remote get-url ' .. vim.fn.shellescape(remote_name))[1]
+  if vim.v.shell_error ~= 0 or not url then
+    return nil, 'Failed to get remote URL for ' .. remote_name
+  end
+  return M._parse_url(url)
 end
 
 --- Get the current git ref, preferring the remote tracking branch name.

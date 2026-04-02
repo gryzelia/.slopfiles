@@ -219,12 +219,14 @@ function M.select_url(opts)
   end
 
   local function do_copy()
-    M.copy_url(vim.tbl_extend('force', opts, {
-      remote = state.remote,
-      ref = state.ref,
-      convert_to_sha = false,
-      provider = state.provider,
-    }))
+    vim.schedule(function()
+      M.copy_url(vim.tbl_extend('force', opts, {
+        remote = state.remote,
+        ref = state.ref,
+        convert_to_sha = false,
+        provider = state.provider,
+      }))
+    end)
   end
 
   -- Sub-picker helper
