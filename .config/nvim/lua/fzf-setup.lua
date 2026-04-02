@@ -288,59 +288,73 @@ local function is_continuous_range(oldest, newest, count)
   return tonumber(result[1]) == count
 end
 
+local function git_commit_actions()
+  return {
+    ['ctrl-o'] = {
+      fn = function(selected)
+        local commit = selected[1]:match('[a-f0-9]+')
+        if commit then
+          fzf_git_diff_commit(commit)
+        end
+      end,
+      header = 'search diff',
+    },
+    ['ctrl-f'] = {
+      fn = function(selected)
+        local commit = selected[1]:match('[a-f0-9]+')
+        if commit then
+          vim.cmd('Gedit ' .. commit)
+        end
+      end,
+      header = 'view in fugitive',
+    },
+    ['ctrl-p'] = {
+      fn = function(selected)
+        for _, entry in ipairs(selected) do
+          local commit = entry:match('[a-f0-9]+')
+          if commit then
+            if not git_exec('git cherry-pick ' .. commit) then break end
+          end
+        end
+      end,
+      header = 'cherry-pick',
+    },
+  }
+end
+
 -- Git log with args (like :Git log in fugitive)
 local function fzf_git_log(args, warning)
   local log_cmd = 'git log --oneline --color --decorate ' .. (args or '')
   local prompt = warning
     and ('\x1b[31m' .. warning .. '\x1b[0m > ')
     or 'Git Log> '
+  local actions = git_commit_actions()
+  actions['ctrl-o'] = {
+    fn = function(selected)
+      if #selected == 1 then
+        local commit = selected[1]:match('[a-f0-9]+')
+        if commit then
+          fzf_git_diff_commit(commit)
+        end
+      else
+        local a = selected[1]:match('[a-f0-9]+')
+        local b = selected[#selected]:match('[a-f0-9]+')
+        local oldest, newest = order_commits(a, b)
+        -- note: assumes monotonicity of the commit range
+        if not oldest or not is_continuous_range(oldest, newest, #selected) then
+          fzf_git_log(args, 'Selection is not a continuous range')
+          return
+        end
+        fzf_git_diff_range({ from = oldest .. '~1', to = newest })
+      end
+    end,
+    header = 'search diff',
+  }
   fzf.git_commits({
     cmd = log_cmd,
     prompt = prompt,
     fzf_opts = { ['--no-multi'] = false, ['--multi'] = '' },
-    actions = {
-      ['ctrl-o'] = {
-        fn = function(selected)
-          if #selected == 1 then
-            local commit = selected[1]:match('[a-f0-9]+')
-            if commit then
-              fzf_git_diff_commit(commit)
-            end
-          else
-            local a = selected[1]:match('[a-f0-9]+')
-            local b = selected[#selected]:match('[a-f0-9]+')
-            local oldest, newest = order_commits(a, b)
-            -- note: assumes monotonicity of the commit range
-            if not oldest or not is_continuous_range(oldest, newest, #selected) then
-              fzf_git_log(args, 'Selection is not a continuous range')
-              return
-            end
-            fzf_git_diff_range({ from = oldest .. '~1', to = newest })
-          end
-        end,
-        header = 'search diff',
-      },
-      ['ctrl-f'] = {
-        fn = function(selected)
-          local commit = selected[1]:match('[a-f0-9]+')
-          if commit then
-            vim.cmd('Gedit ' .. commit)
-          end
-        end,
-        header = 'view in fugitive',
-      },
-      ['ctrl-p'] = {
-        fn = function(selected)
-          for _, entry in ipairs(selected) do
-            local commit = entry:match('[a-f0-9]+')
-            if commit then
-              if not git_exec('git cherry-pick ' .. commit) then break end
-            end
-          end
-        end,
-        header = 'cherry-pick',
-      },
-    },
+    actions = actions,
   })
 end
 
@@ -358,6 +372,10 @@ vim.keymap.set('n', '<leader>gL', function()
   end
 end, { desc = '[G]it buffer [L]og' })
 
+vim.keymap.set('n', '<leader>gD', function()
+  fzf_diff_exec({ commit = 'HEAD' })
+end, { desc = '[G]it [D]iff HEAD (show)' })
+
 vim.keymap.set('n', '<leader>gd', function()
   prompt_git_in_terminal('diff', function(args)
     fzf_git_diff_range(parse_diff_args(args))
@@ -373,26 +391,7 @@ vim.keymap.set('n', '<leader>gr', function()
     fzf.git_commits({
       cmd = 'git reflog --color --decorate ' .. (args or ''),
       preview = 'git show --color {1}',
-      actions = {
-        ['ctrl-o'] = {
-          fn = function(selected)
-            local commit = selected[1]:match('[a-f0-9]+')
-            if commit then
-              fzf_git_diff_commit(commit)
-            end
-          end,
-          header = 'search diff',
-        },
-        ['ctrl-f'] = {
-          fn = function(selected)
-            local commit = selected[1]:match('[a-f0-9]+')
-            if commit then
-              vim.cmd('Gedit ' .. commit)
-            end
-          end,
-          header = 'view in fugitive',
-        },
-      },
+      actions = git_commit_actions(),
     })
   end)
 end, { desc = '[G]it [R]eflog' })
