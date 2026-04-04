@@ -323,8 +323,26 @@ local function git_commit_actions()
 end
 
 -- Git log with args (like :Git log in fugitive)
+local log_state = { timestamp = false, author = false }
+
+local function log_format()
+  local fmt = '%C(yellow)%h%C(reset)'
+  if log_state.timestamp then
+    fmt = fmt .. ' %C(blue)%cd%C(reset)'
+  end
+  if log_state.author then
+    fmt = fmt .. ' %C(magenta)<%an>%C(reset)'
+  end
+  fmt = fmt .. ' %s%C(auto)%d'
+  return fmt
+end
+
 local function fzf_git_log(args, warning)
-  local log_cmd = 'git log --oneline --color --decorate ' .. (args or '')
+  local log_cmd = 'git log --color --decorate --format=' .. vim.fn.shellescape(log_format())
+  if log_state.timestamp then
+    log_cmd = log_cmd .. ' --date=short'
+  end
+  log_cmd = log_cmd .. ' ' .. (args or '')
   local prompt = warning
     and ('\x1b[31m' .. warning .. '\x1b[0m > ')
     or 'Git Log> '
@@ -349,6 +367,20 @@ local function fzf_git_log(args, warning)
       end
     end,
     header = 'search diff',
+  }
+  actions['ctrl-t'] = {
+    fn = function()
+      log_state.timestamp = not log_state.timestamp
+      fzf_git_log(args)
+    end,
+    header = 'toggle timestamp',
+  }
+  actions['ctrl-u'] = {
+    fn = function()
+      log_state.author = not log_state.author
+      fzf_git_log(args)
+    end,
+    header = 'toggle author',
   }
   fzf.git_commits({
     cmd = log_cmd,
@@ -396,7 +428,37 @@ vim.keymap.set('n', '<leader>gr', function()
   end)
 end, { desc = '[G]it [R]eflog' })
 
-vim.keymap.set('n', '<leader>gb', fzf.git_branches, { desc = '[G]it [B]ranches' })
+local function extract_branch(entry)
+  return entry:match('^[%*+]*%s*[(]?([^%s)]+)')
+end
+
+local function fzf_git_branches(query)
+  fzf.git_branches({
+    query = query,
+    actions = {
+      ['tab'] = {
+        fn = function(selected)
+          local branch = extract_branch(selected[1])
+          if branch then
+            fzf_git_branches(branch)
+          end
+        end,
+        header = 'fill branch name',
+      },
+      ['ctrl-o'] = {
+        fn = function(selected)
+          local branch = extract_branch(selected[1])
+          if branch then
+            fzf_git_log(branch)
+          end
+        end,
+        header = 'view log',
+      },
+    },
+  })
+end
+
+vim.keymap.set('n', '<leader>gb', fzf_git_branches, { desc = '[G]it [B]ranches' })
 vim.keymap.set('n', '<leader>gt', fzf.git_tags, { desc = '[G]it [T]ags' })
 
 -- vim: ts=2 sts=2 sw=2 et
