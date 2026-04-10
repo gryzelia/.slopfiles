@@ -33,6 +33,8 @@ end
 
 # Enter key hook — distinguishes Enter from widget repaints (ctrl+r, ctrl+t)
 function __starship_mark_enter
+    # Defer to pager navigation if the completion pager is open (defined in interactive.fish)
+    __pager_down_or_search; and return
     set -g __starship_enter_pressed 1
     commandline -f execute
 end
