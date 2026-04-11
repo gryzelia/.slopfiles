@@ -33,8 +33,6 @@ end
 
 # Enter key hook — distinguishes Enter from widget repaints (ctrl+r, ctrl+t)
 function __starship_mark_enter
-    # Defer to pager navigation if the completion pager is open (defined in interactive.fish)
-    __pager_down_or_search; and return
     set -g __starship_enter_pressed 1
     commandline -f execute
 end
@@ -67,11 +65,11 @@ function fish_prompt
             case fish_hybrid_key_bindings fish_vi_key_bindings fish_helix_key_bindings
                 for mode in insert default visual replace replace_one
                     bind -M $mode \r __starship_mark_enter 2>/dev/null
-                    bind -M $mode \n __starship_mark_enter 2>/dev/null
+                    bind -M $mode \n '__pager_down_or_search; or __starship_mark_enter' 2>/dev/null
                 end
             case '*'
                 bind \r __starship_mark_enter 2>/dev/null
-                bind \n __starship_mark_enter 2>/dev/null
+                bind \n '__pager_down_or_search; or __starship_mark_enter' 2>/dev/null
         end
     end
 
