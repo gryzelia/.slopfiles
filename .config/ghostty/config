@@ -22,9 +22,12 @@ minimum-contrast = 1
 # Keybindings
 # keybind = ctrl+f11=toggle_fullscreen
 
-# Disable Alt+Enter
-# keybind = alt+enter=ignore
+# Disable Alt+Enter and C-A
+keybind = super+enter=unbind
+keybind = super+a=unbind
 
 # Misc
 # shell-integration = fish
 shell-integration-features = sudo,ssh-terminfo,ssh-env
+clipboard-read = allow
+copy-on-select = false
