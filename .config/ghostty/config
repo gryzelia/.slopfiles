@@ -22,9 +22,11 @@ minimum-contrast = 1
 # Keybindings
 # keybind = ctrl+f11=toggle_fullscreen
 
-# Disable Alt+Enter and C-A
+# Disable default fullscreen and select all keybinds
 keybind = super+enter=unbind
 keybind = super+a=unbind
+keybind = ctrl+enter=unbind
+keybind = ctrl+shift+a=unbind
 
 # Misc
 # shell-integration = fish
