@@ -150,8 +150,10 @@ function fish_prompt
         # to break on SIGUSR1, unlike the old starship | string collect approach)
         set -g __starship_prompt_cache (env GIT_DIR=/dev/null starship prompt $starship_args 2>/dev/null)
 
-        # Shared args string for async fish -c subshells
-        set -l args_str (string join -- ' ' $starship_args)
+        # Args for async fish -c subshells. Pipestatus single-quoted so embedded
+        # spaces (e.g. "0 0" from piped commands) survive the child shell's parsing
+        # as a single argument to starship.
+        set -l args_str "--terminal-width=$COLUMNS --status=$__starship_saved_status --pipestatus='$__starship_saved_pipestatus' --keymap=$STARSHIP_KEYMAP --cmd-duration=$__starship_saved_duration --jobs=$__starship_saved_jobs"
         set -l ppid $fish_pid
 
         # Async job 1: fast git (default timeout ~500ms)
