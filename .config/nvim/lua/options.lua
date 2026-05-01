@@ -39,4 +39,5 @@ vim.opt.shiftwidth = 4
 vim.opt.shiftround = true
 
 vim.opt.hlsearch = true
+vim.opt.winborder = 'single'
 -- vim: ts=2 sts=2 sw=2 et

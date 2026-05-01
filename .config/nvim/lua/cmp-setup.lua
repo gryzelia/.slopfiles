@@ -11,8 +11,8 @@ cmp.setup {
     end,
   },
   window = {
-    completion = cmp.config.window.bordered(),
-    documentation = cmp.config.window.bordered(),
+    completion = cmp.config.window.bordered( { border = 'rounded' }),
+    documentation = cmp.config.window.bordered( { border = 'rounded' }),
   },
   mapping = cmp.mapping.preset.insert {
     ['<C-j>'] = cmp.mapping.select_next_item { behavior = cmp.SelectBehavior.Insert },
