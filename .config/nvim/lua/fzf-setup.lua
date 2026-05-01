@@ -310,11 +310,22 @@ local function git_commit_actions()
     },
     ['ctrl-p'] = {
       fn = function(selected)
+        local commits = {}
         for _, entry in ipairs(selected) do
           local commit = entry:match('[a-f0-9]+')
-          if commit then
-            if not git_exec('git cherry-pick ' .. commit) then break end
+          if commit then table.insert(commits, commit) end
+        end
+        if #commits <= 1 then
+          for _, c in ipairs(commits) do
+            if not git_exec('git cherry-pick ' .. c) then break end
           end
+        else
+          local oldest, newest = order_commits(commits[1], commits[#commits])
+          if not oldest or not is_continuous_range(oldest, newest, #commits) then
+            vim.notify('Selection is not a continuous range', vim.log.levels.ERROR)
+            return
+          end
+          git_exec('git cherry-pick ' .. oldest .. '^..' .. newest)
         end
       end,
       header = 'cherry-pick',
@@ -453,6 +464,20 @@ local function fzf_git_branches(query)
           end
         end,
         header = 'view log',
+      },
+      ['ctrl-f'] = {
+        fn = function(selected)
+          local branch = extract_branch(selected[1])
+          if not branch then return end
+          local remote = branch:match('^remotes/([^/]+)/') or branch:match('^([^/]+)/')
+          if remote then
+            git_exec('git fetch ' .. vim.fn.shellescape(remote))
+          else
+            git_exec('git fetch')
+          end
+          fzf_git_branches(query)
+        end,
+        header = 'fetch remote',
       },
     },
   })
