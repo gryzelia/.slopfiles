@@ -65,13 +65,11 @@ vim.defer_fn(function()
       },
     },
   }
-  vim.api.nvim_create_autocmd('FileType', { 
-    callback = function() 
+  vim.api.nvim_create_autocmd('FileType', {
+    callback = function()
       -- Enable treesitter highlighting and disable regex syntax
-      pcall(vim.treesitter.start) 
-      -- Enable treesitter-based indentation
-      vim.bo.indentexpr = "v:lua.require'nvim-treesitter'.indentexpr()" 
-    end
+      pcall(vim.treesitter.start)
+    end,
   })
 
   -- Add languages to be installed here that you want installed for treesitter
