@@ -18,4 +18,3 @@ _darcs
 
 # Repo management — do not stow into $HOME
 ^/scripts
-^/\.claude
