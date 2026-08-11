@@ -1,13 +1,22 @@
 # Official starship init (pipestatus, keymap, transient prompt, session key, etc.)
 starship init fish | source
 
-# Generate no-timeout config from the original (for full async git render)
-set -g __starship_notimeout_config (mktemp /tmp/starship_notimeout_XXXXXX)
-begin
-    echo 'command_timeout = 600000'
-    set -l cfg (set -q STARSHIP_CONFIG; and echo $STARSHIP_CONFIG; or echo "$HOME/.config/starship.toml")
-    sed '/^command_timeout/d' "$cfg"
-end > $__starship_notimeout_config
+# Generate no-timeout config from the original (for full async git render).
+# Self-healing: /tmp is periodically cleaned (systemd-tmpfiles) out from under
+# long-lived shells; if the file is gone, starship silently falls back to its
+# default prompt. Regenerate on demand so an idle shell recovers on next prompt.
+function __starship_ensure_notimeout_config
+    if set -q __starship_notimeout_config; and test -f "$__starship_notimeout_config"
+        return
+    end
+    set -g __starship_notimeout_config (mktemp /tmp/starship_notimeout_XXXXXX)
+    begin
+        echo 'command_timeout = 600000'
+        set -l cfg (set -q STARSHIP_CONFIG; and echo $STARSHIP_CONFIG; or echo "$HOME/.config/starship.toml")
+        sed '/^command_timeout/d' "$cfg"
+    end > $__starship_notimeout_config
+end
+__starship_ensure_notimeout_config
 
 # Portable setsid — puts background jobs in a separate process group
 # so Ctrl+C (SIGINT) doesn't kill them
@@ -165,6 +174,9 @@ function fish_prompt
         disown $last_pid 2>/dev/null
 
         # Async job 2: full git (no timeout)
+        # Regenerate the config if /tmp cleanup removed it, else starship would
+        # emit its default prompt and clobber the cache via the SIGUSR1 handler.
+        __starship_ensure_notimeout_config
         set -g __starship_full_tmpfile (mktemp /tmp/starship_full.XXXXXX)
         $__starship_setsid fish -c "
             STARSHIP_CONFIG='$__starship_notimeout_config' starship prompt $args_str > '$__starship_full_tmpfile' 2>/dev/null
